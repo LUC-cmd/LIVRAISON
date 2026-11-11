@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Check, Eye, EyeOff, KeyRound, Phone } from 'lucide-react';
+import { ArrowLeft, Check, Eye, EyeOff, KeyRound, Phone, Receipt, ShoppingBag } from 'lucide-react';
 import { errorMessage, get, post } from '../../api/client';
 import { dateTime, deliveryStatusLabel, fcfa, orderStatusLabel, paymentMethodLabel, paymentStatusLabel, timeOnly } from '../../api/labels';
 import type { AppConfig, CodeView, Complaint, GroupView, OrderStatus, OrderView, PaymentMethod, Tracking } from '../../api/types';
@@ -26,7 +26,7 @@ export function OrdersPage() {
   if (list.isError) return <ErrorBox error={list.error} retry={() => list.refetch()} />;
   return (
     <div>
-      <PageTitle title="Mes commandes" />
+      <PageTitle icon={<ShoppingBag className="h-6 w-6" />} title="Mes commandes" subtitle="Suivi, codes de retrait et historique." />
       {list.data?.length === 0 && <Empty title="Aucune commande" hint="Vos commandes apparaîtront ici." action={<Link className="btn-primary" to="/">Commander</Link>} />}
       <div className="space-y-3">
         {list.data?.map((g) => (
@@ -153,7 +153,7 @@ export function OrderDetailPage() {
   return (
     <div className="space-y-4">
       <Link to="/commandes" className="inline-flex items-center gap-1 text-sm font-semibold text-ink-500 hover:text-ink-900"><ArrowLeft className="h-4 w-4" /> Mes commandes</Link>
-      <PageTitle title={`Commande n°${g.id}`} subtitle={`${dateTime(g.createdAt)} · ${g.deliveryAddress}`} />
+      <PageTitle icon={<Receipt className="h-6 w-6" />} title={`Commande n°${g.id}`} subtitle={`${dateTime(g.createdAt)} · ${g.deliveryAddress}`} />
 
       {awaitingSandbox && (
         <div className="card space-y-2 border-amber-300 bg-amber-50">

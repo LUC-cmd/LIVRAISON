@@ -4,12 +4,13 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import axios from 'axios';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ImagePlus, Pencil, Trash2, X } from 'lucide-react';
+import { BarChart3, ChefHat, ClipboardList, HandCoins, ImagePlus, Pencil, Percent, Store, Timer, Trash2, Wallet, X } from 'lucide-react';
 import { del, errorMessage, get, patch, post, put, uploadImage } from '../../api/client';
 import { compartmentStateLabel, dateTime, dayLabel, fcfa, orderStatusLabel, sizeLabel } from '../../api/labels';
 import type { BoxView, Category, DayStat, Dish, Hour, OrderStatus, RestaurantOrder, RestaurantProfile, SizeClass } from '../../api/types';
 import { BoxSimulator } from '../../components/BoxSimulator';
 import { MapView } from '../../components/MapView';
+import { DishArt } from '../../components/DishArt';
 import { Badge, BarChart, Empty, ErrorBox, Field, PageTitle, Spinner, Stat } from '../../components/ui';
 import { toast } from '../../stores/toast';
 
@@ -77,7 +78,7 @@ export function RestaurantProfilePage() {
   const status = profile.data?.restaurant.status;
   return (
     <div className="space-y-4">
-      <PageTitle title={profile.data ? profile.data.restaurant.name : 'Créer mon restaurant'} action={status && <Badge tone={status === 'APPROVED' ? 'green' : status === 'PENDING' ? 'orange' : 'red'}>{status === 'APPROVED' ? 'Validé' : status === 'PENDING' ? 'En attente de validation' : 'Suspendu'}</Badge>} />
+      <PageTitle icon={<Store className="h-6 w-6" />} subtitle="Profil public, position et horaires de votre restaurant." title={profile.data ? profile.data.restaurant.name : 'Créer mon restaurant'} action={status && <Badge tone={status === 'APPROVED' ? 'green' : status === 'PENDING' ? 'orange' : 'red'}>{status === 'APPROVED' ? 'Validé' : status === 'PENDING' ? 'En attente de validation' : 'Suspendu'}</Badge>} />
       <form className="card space-y-3" onSubmit={form.handleSubmit((v) => { if (!position) { toast.error('Placez votre restaurant sur la carte.'); return; } save.mutate(v); })} noValidate>
         <div className="flex items-center gap-3">
           <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl bg-brand-100 text-brand-600">{logoUrl ? <img src={logoUrl} alt="Logo" className="h-full w-full object-cover" /> : <ImagePlus className="h-6 w-6" />}</div>
@@ -164,7 +165,7 @@ export function RestaurantMenuPage() {
 
   return (
     <div className="space-y-4">
-      <PageTitle title="Menu" />
+      <PageTitle icon={<ChefHat className="h-6 w-6" />} title="Menu" subtitle="Catégories, plats, prix, photos et disponibilités." />
       <input ref={fileInput} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f && imageFor) addImage.mutate({ dishId: imageFor, file: f }); e.target.value = ''; }} />
       <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
         <form className="card space-y-3" onSubmit={form.handleSubmit((v) => saveDish.mutate(v))} noValidate>
@@ -197,6 +198,7 @@ export function RestaurantMenuPage() {
             </div>
             <p className="text-sm text-ink-500">{d.description}</p>
             <div className="flex flex-wrap gap-2">
+              {d.images.length === 0 && <div className="h-16 w-16 overflow-hidden rounded-lg" title="Illustration par défaut : ajoutez votre propre photo"><DishArt name={d.name} className="h-full w-full" /></div>}
               {d.images.map((img) => (
                 <div key={img.id} className="relative h-16 w-16 overflow-hidden rounded-lg">
                   <img src={img.url} alt="" className="h-full w-full object-cover" />
@@ -249,7 +251,7 @@ export function RestaurantOrdersPage() {
 
   return (
     <div className="space-y-5">
-      <PageTitle title="Commandes" subtitle={free.length ? `Coffres en service — ${free.join(' · ')}` : 'Aucun coffre en service pour le moment.'} />
+      <PageTitle icon={<ClipboardList className="h-6 w-6" />} title="Commandes" subtitle={free.length ? `Coffres en service — ${free.join(' · ')}` : 'Aucun coffre en service pour le moment.'} />
       {list.length === 0 && <Empty title="Aucune commande reçue" hint="Les nouvelles commandes apparaissent ici en temps réel." />}
       {groupsOf.map((g) => {
         const items = list.filter((o) => g.statuses.includes(o.order.status));
@@ -315,12 +317,12 @@ export function RestaurantStatsPage() {
   const s = stats.data;
   return (
     <div className="space-y-4">
-      <PageTitle title="Ventes et statistiques" subtitle="Calculées sur les commandes retirées par les clients." />
+      <PageTitle icon={<BarChart3 className="h-6 w-6" />} title="Ventes et statistiques" subtitle="Calculées sur les commandes retirées par les clients." />
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Stat label="Ventes" value={fcfa(s.revenue)} hint={`${s.collectedOrders} commande(s) retirée(s)`} />
-        <Stat label="Commission plateforme" value={fcfa(s.commission)} />
-        <Stat label="Revenu net" value={fcfa(s.net)} />
-        <Stat label="En cours" value={s.inProgressOrders} hint={`${s.rejectedOrders} refusée(s) ou annulée(s)`} />
+        <Stat icon={<Wallet className="h-5 w-5" />} label="Ventes" value={fcfa(s.revenue)} hint={`${s.collectedOrders} commande(s) retirée(s)`} />
+        <Stat icon={<Percent className="h-5 w-5" />} tone="dark" label="Commission plateforme" value={fcfa(s.commission)} />
+        <Stat icon={<HandCoins className="h-5 w-5" />} tone="green" label="Revenu net" value={fcfa(s.net)} />
+        <Stat icon={<Timer className="h-5 w-5" />} tone="blue" label="En cours" value={s.inProgressOrders} hint={`${s.rejectedOrders} refusée(s) ou annulée(s)`} />
       </div>
       <div className="grid gap-4 lg:grid-cols-2">
         <div className="card"><h2 className="mb-3">Ventes des 7 derniers jours</h2><BarChart data={s.lastDays.map((d) => ({ label: d.day.slice(8, 10) + '/' + d.day.slice(5, 7), value: d.revenue }))} format={(n) => n.toLocaleString('fr-FR')} /></div>

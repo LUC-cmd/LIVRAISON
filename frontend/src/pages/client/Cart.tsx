@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Minus, Plus, Trash2 } from 'lucide-react';
+import { Minus, Plus, ShoppingBag, Trash2 } from 'lucide-react';
 import { errorMessage, get, post } from '../../api/client';
 import { fcfa, paymentMethodLabel } from '../../api/labels';
 import type { Address, AppConfig, GroupView, PaymentMethod } from '../../api/types';
@@ -55,7 +55,7 @@ export function CartPage() {
   return (
     <div className="grid gap-4 lg:grid-cols-[1fr_360px]">
       <div className="space-y-4">
-        <PageTitle title="Mon panier" subtitle={byRestaurant.length > 1 ? `${byRestaurant.length} restaurants : chaque repas voyage dans son propre compartiment.` : undefined} />
+        <PageTitle icon={<ShoppingBag className="h-6 w-6" />} title="Mon panier" subtitle={byRestaurant.length > 1 ? `${byRestaurant.length} restaurants : chaque repas voyage dans son propre compartiment.` : undefined} />
         {byRestaurant.map(([id, group]) => (
           <div key={id} className="card space-y-2">
             <h2>{group.name}</h2>

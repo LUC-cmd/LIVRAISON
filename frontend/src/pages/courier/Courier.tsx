@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Banknote, MapPin, Navigation, Phone, Radio } from 'lucide-react';
+import { Banknote, Bike, CalendarCheck, History, MapPin, Navigation, PackageCheck, Phone, Radio, Wallet } from 'lucide-react';
 import { errorMessage, get, post, put } from '../../api/client';
 import { dateTime, deliveryStatusLabel, fcfa, orderStatusLabel, paymentMethodLabel } from '../../api/labels';
 import type { AppConfig, BoxView, LocationPoint, Mission } from '../../api/types';
@@ -104,7 +104,7 @@ export function CourierPage() {
 
   return (
     <div className="space-y-4">
-      <PageTitle title="Mes missions" subtitle={s.box ? `Vous transportez le ${s.box.name}.` : "Aucun coffre ne vous est attribué. Contactez l'administrateur."}
+      <PageTitle icon={<Bike className="h-6 w-6" />} title="Mes missions" subtitle={s.box ? `Vous transportez le ${s.box.name}.` : "Aucun coffre ne vous est attribué. Contactez l'administrateur."}
         action={<button className={s.available ? 'btn-primary' : 'btn-ghost'} disabled={availability.isPending} onClick={() => availability.mutate(!s.available)}>{s.available ? 'Disponible — passer indisponible' : 'Indisponible — me rendre disponible'}</button>} />
 
       {active.length === 0 && <Empty title="Aucune mission en cours" hint={s.available ? 'Les missions arrivent ici dès qu’un restaurant réserve un compartiment de votre coffre.' : 'Rendez-vous disponible pour recevoir des missions.'} />}
@@ -146,8 +146,8 @@ export function CourierHistoryPage() {
   const done = (missions.data ?? []).filter((m) => !ACTIVE.includes(m.status));
   return (
     <div className="space-y-4">
-      <PageTitle title="Historique et revenus" />
-      {earnings.data && <div className="grid grid-cols-3 gap-3"><Stat label="Aujourd'hui" value={fcfa(earnings.data.today)} /><Stat label="Total" value={fcfa(earnings.data.total)} /><Stat label="Livraisons terminées" value={earnings.data.completedDeliveries} /></div>}
+      <PageTitle icon={<History className="h-6 w-6" />} title="Historique et revenus" subtitle="Vos livraisons terminées et vos gains." />
+      {earnings.data && <div className="grid gap-3 sm:grid-cols-3"><Stat icon={<CalendarCheck className="h-5 w-5" />} label="Aujourd'hui" value={fcfa(earnings.data.today)} /><Stat icon={<Wallet className="h-5 w-5" />} tone="green" label="Total" value={fcfa(earnings.data.total)} /><Stat icon={<PackageCheck className="h-5 w-5" />} tone="dark" label="Livraisons terminées" value={earnings.data.completedDeliveries} /></div>}
       {done.length === 0 ? <Empty title="Aucune livraison terminée" /> : (
         <div className="card overflow-x-auto"><table className="table"><thead><tr><th>Mission</th><th>Date</th><th>Destination</th><th>Statut</th><th>Gain</th></tr></thead>
           <tbody>{done.map((m) => <tr key={m.id}><td>n°{m.id}</td><td>{dateTime(m.completedAt ?? m.createdAt)}</td><td>{m.destinationAddress}</td><td>{deliveryStatusLabel[m.status]}</td><td>{m.status === 'COMPLETED' ? fcfa(m.earning) : '—'}</td></tr>)}</tbody></table></div>

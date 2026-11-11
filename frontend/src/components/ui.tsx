@@ -50,25 +50,49 @@ export function Field({ label, error, children }: { label: string; error?: strin
   );
 }
 
-export function PageTitle({ title, subtitle, action }: { title: string; subtitle?: string; action?: ReactNode }) {
+/** En-tete de page : bandeau sombre, pastille d'icone, titre, sous-titre et actions. */
+export function PageTitle({ title, subtitle, action, icon }: { title: string; subtitle?: string; action?: ReactNode; icon?: ReactNode }) {
   return (
-    <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
-      <div>
-        <h1>{title}</h1>
-        {subtitle && <p className="mt-1 text-sm text-ink-500">{subtitle}</p>}
+    <div className="relative mb-5 overflow-hidden rounded-3xl bg-ink-900 px-5 py-5 text-white shadow-soft sm:px-7 sm:py-6">
+      <div className="pointer-events-none absolute -right-10 -top-16 h-48 w-48 rounded-full bg-brand-500/30 blur-2xl" />
+      <div className="pointer-events-none absolute -bottom-20 right-24 h-40 w-40 rounded-full bg-leaf-500/20 blur-2xl" />
+      <div className="relative flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          {icon && <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-brand-500 text-white shadow-soft">{icon}</span>}
+          <div>
+            <h1 className="text-white">{title}</h1>
+            {subtitle && <p className="mt-1 max-w-2xl text-sm text-ink-300">{subtitle}</p>}
+          </div>
+        </div>
+        {action && <div className="flex flex-wrap items-center gap-2">{action}</div>}
       </div>
-      {action}
     </div>
   );
 }
 
-export function Stat({ label, value, hint }: { label: string; value: ReactNode; hint?: string }) {
+const statTones = { orange: 'bg-brand-100 text-brand-600', green: 'bg-leaf-100 text-leaf-700', dark: 'bg-ink-900 text-white', blue: 'bg-sky-100 text-sky-700', red: 'bg-red-100 text-red-700' };
+export function Stat({ label, value, hint, icon, tone = 'orange' }: { label: string; value: ReactNode; hint?: string; icon?: ReactNode; tone?: keyof typeof statTones }) {
   return (
-    <div className="card">
-      <p className="text-xs font-semibold uppercase tracking-wide text-ink-500">{label}</p>
-      <p className="mt-1 text-2xl font-bold">{value}</p>
-      {hint && <p className="text-xs text-ink-500">{hint}</p>}
+    <div className="card flex items-start gap-3">
+      {icon && <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${statTones[tone]}`}>{icon}</span>}
+      <div className="min-w-0">
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-ink-500">{label}</p>
+        <p className="mt-0.5 truncate text-2xl font-extrabold tracking-tight">{value}</p>
+        {hint && <p className="text-xs text-ink-500">{hint}</p>}
+      </div>
     </div>
+  );
+}
+
+export function Section({ title, children, action }: { title: string; children: ReactNode; action?: ReactNode }) {
+  return (
+    <section className="space-y-3">
+      <div className="flex items-center justify-between gap-2">
+        <h2 className="flex items-center gap-2"><span className="h-5 w-1.5 rounded-full bg-brand-500" />{title}</h2>
+        {action}
+      </div>
+      {children}
+    </section>
   );
 }
 

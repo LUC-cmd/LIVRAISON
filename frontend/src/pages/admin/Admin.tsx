@@ -3,11 +3,12 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Activity, Bike, Box, ClipboardList, CreditCard, LayoutDashboard, MessageSquareWarning, Percent, ShieldCheck, Store, Truck, Users, Wallet, Timer } from 'lucide-react';
 import { errorMessage, get, post, put } from '../../api/client';
 import { compartmentStateLabel, dateTime, deliveryStatusLabel, fcfa, orderStatusLabel, paymentMethodLabel, paymentStatusLabel, roleLabel, sizeLabel } from '../../api/labels';
 import type { BoxView, CompartmentState, Complaint, DayStat, DeliveryStatus, GroupView, PaymentMethod, PaymentStatus, RestaurantEntity, Role, SizeClass, User } from '../../api/types';
 import { BoxSimulator } from '../../components/BoxSimulator';
-import { Badge, BarChart, Empty, ErrorBox, Field, PageTitle, Spinner, Stat } from '../../components/ui';
+import { Badge, BarChart, Empty, ErrorBox, Field, PageTitle, Section, Spinner, Stat } from '../../components/ui';
 import { hasRole, useSession } from '../../stores/session';
 import { toast } from '../../stores/toast';
 
@@ -33,21 +34,31 @@ export function AdminDashboardPage() {
   const s = d.data;
   return (
     <div className="space-y-4">
-      <PageTitle title="Tableau de bord" subtitle="Vue d'ensemble de la plateforme." />
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Stat label="Ventes (retirées)" value={fcfa(s.grossSales)} hint={`${s.ordersCollected} commande(s)`} />
-        <Stat label="Commissions" value={fcfa(s.commissions)} hint={`+ ${fcfa(s.deliveryFees)} de frais de livraison encaissés`} />
-        <Stat label="Commandes en cours" value={s.ordersInProgress} hint={`${s.ordersTotal} au total`} />
-        <Stat label="Livraisons actives" value={s.activeDeliveries} />
-        <Stat label="Clients" value={s.customers} />
-        <Stat label="Restaurants" value={s.restaurants} hint={`${s.restaurantsPending} à valider`} />
-        <Stat label="Livreurs" value={s.couriers} />
-        <Stat label="Coffres" value={s.boxes} hint={`${s.boxesOffline} hors connexion · ${s.openComplaints} réclamation(s) ouverte(s)`} />
-      </div>
+      <PageTitle icon={<LayoutDashboard className="h-6 w-6" />} title="Tableau de bord" subtitle="Vue d'ensemble de la plateforme, mise à jour en temps réel." />
+      <Section title="Activité">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <Stat icon={<Wallet className="h-5 w-5" />} label="Ventes (retirées)" value={fcfa(s.grossSales)} hint={`${s.ordersCollected} commande(s)`} />
+          <Stat icon={<Percent className="h-5 w-5" />} tone="green" label="Commissions" value={fcfa(s.commissions)} hint={`+ ${fcfa(s.deliveryFees)} de frais de livraison`} />
+          <Stat icon={<Timer className="h-5 w-5" />} tone="blue" label="Commandes en cours" value={s.ordersInProgress} hint={`${s.ordersTotal} au total`} />
+          <Stat icon={<Truck className="h-5 w-5" />} tone="dark" label="Livraisons actives" value={s.activeDeliveries} />
+        </div>
+      </Section>
+      <Section title="Plateforme">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <Stat icon={<Users className="h-5 w-5" />} tone="blue" label="Clients" value={s.customers} />
+          <Stat icon={<Store className="h-5 w-5" />} label="Restaurants" value={s.restaurants} hint={`${s.restaurantsPending} à valider`} />
+          <Stat icon={<Bike className="h-5 w-5" />} tone="green" label="Livreurs" value={s.couriers} />
+          <Stat icon={<Box className="h-5 w-5" />} tone={s.boxesOffline > 0 ? 'red' : 'dark'} label="Coffres" value={s.boxes} hint={`${s.boxesOffline} hors connexion · ${s.openComplaints} réclamation(s) ouverte(s)`} />
+        </div>
+      </Section>
       <div className="grid gap-4 lg:grid-cols-2">
         <div className="card"><h2 className="mb-3">Ventes des 7 derniers jours</h2><BarChart data={s.lastDays.map((x) => ({ label: x.day.slice(8, 10) + '/' + x.day.slice(5, 7), value: x.revenue }))} format={(n) => n.toLocaleString('fr-FR')} /></div>
         <div className="card"><h2 className="mb-3">État des compartiments</h2>
-          <div className="flex flex-wrap gap-2">{(Object.keys(s.compartments) as CompartmentState[]).map((k) => <Badge key={k} tone={k === 'FAULT' && s.compartments[k] > 0 ? 'red' : k === 'AVAILABLE' ? 'green' : 'gray'}>{compartmentStateLabel[k]} : {s.compartments[k]}</Badge>)}</div>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">{(Object.keys(s.compartments) as CompartmentState[]).map((k) => (
+            <div key={k} className={`rounded-xl px-3 py-2 ${k === 'FAULT' && s.compartments[k] > 0 ? 'bg-red-50 text-red-700' : k === 'AVAILABLE' ? 'bg-leaf-100 text-leaf-700' : 'bg-ink-50 text-ink-700'}`}>
+              <p className="text-xl font-extrabold">{s.compartments[k]}</p><p className="text-[11px] font-semibold">{compartmentStateLabel[k]}</p>
+            </div>
+          ))}</div>
         </div>
       </div>
       <div className="card space-y-3">
@@ -73,7 +84,7 @@ export function AdminUsersPage() {
   const toggle = useMutation({ mutationFn: (u: User) => post(`/admin/users/${u.id}/${u.status === 'ACTIVE' ? 'suspend' : 'activate'}`), onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin', 'users'] }), onError: fail });
   return (
     <div>
-      <PageTitle title="Utilisateurs" action={<select className="input w-auto" value={role} onChange={(e) => setRole(e.target.value as Role | '')} aria-label="Filtrer par rôle"><option value="">Tous les rôles</option>{(Object.keys(roleLabel) as Role[]).map((r) => <option key={r} value={r}>{roleLabel[r]}</option>)}</select>} />
+      <PageTitle icon={<Users className="h-6 w-6" />} title="Utilisateurs" subtitle="Comptes, rôles et suspensions." action={<select className="input w-auto" value={role} onChange={(e) => setRole(e.target.value as Role | '')} aria-label="Filtrer par rôle"><option value="">Tous les rôles</option>{(Object.keys(roleLabel) as Role[]).map((r) => <option key={r} value={r}>{roleLabel[r]}</option>)}</select>} />
       {users.isLoading && <Spinner />}
       {users.isError && <ErrorBox error={users.error} retry={() => users.refetch()} />}
       {users.data && (
@@ -99,7 +110,7 @@ export function AdminRestaurantsPage() {
   const label = { PENDING: 'À valider', APPROVED: 'Validé', SUSPENDED: 'Suspendu' };
   return (
     <div>
-      <PageTitle title="Restaurants" subtitle="Un restaurant n'est visible des clients qu'après validation." />
+      <PageTitle icon={<Store className="h-6 w-6" />} title="Restaurants" subtitle="Un restaurant n'est visible des clients qu'après validation." />
       {list.data?.length === 0 && <Empty title="Aucun restaurant inscrit" />}
       <div className="grid gap-3 md:grid-cols-2">
         {list.data?.map(({ restaurant: r, ownerName, ownerEmail }) => (
@@ -126,7 +137,7 @@ export function AdminOrdersPage() {
   if (list.isError) return <ErrorBox error={list.error} retry={() => list.refetch()} />;
   return (
     <div>
-      <PageTitle title="Commandes" subtitle="Les 200 commandes les plus récentes. Les codes de retrait ne sont jamais affichés ici." />
+      <PageTitle icon={<ClipboardList className="h-6 w-6" />} title="Commandes" subtitle="Les 200 commandes les plus récentes. Les codes de retrait ne sont jamais affichés ici." />
       {list.data?.length === 0 && <Empty title="Aucune commande" />}
       <div className="card overflow-x-auto"><table className="table"><thead><tr><th>N°</th><th>Date</th><th>Client</th><th>Sous-commandes</th><th>Total</th><th>Paiement</th></tr></thead>
         <tbody>{list.data?.map((g) => (
@@ -146,7 +157,7 @@ export function AdminPaymentsPage() {
   if (list.isError) return <ErrorBox error={list.error} retry={() => list.refetch()} />;
   return (
     <div>
-      <PageTitle title="Paiements" />
+      <PageTitle icon={<CreditCard className="h-6 w-6" />} title="Paiements" subtitle="Encaissements, échecs et remboursements." />
       {list.data?.length === 0 && <Empty title="Aucun paiement" />}
       <div className="card overflow-x-auto"><table className="table"><thead><tr><th>Commande</th><th>Date</th><th>Moyen</th><th>Montant</th><th>Statut</th><th>Mouvements</th></tr></thead>
         <tbody>{list.data?.map(({ payment: p, transactions }) => (
@@ -169,7 +180,7 @@ export function AdminDeliveriesPage() {
   if (list.isError) return <ErrorBox error={list.error} retry={() => list.refetch()} />;
   return (
     <div className="space-y-4">
-      <PageTitle title="Livraisons et livreurs" />
+      <PageTitle icon={<Truck className="h-6 w-6" />} title="Livraisons et livreurs" subtitle="Missions en cours et disponibilité des livreurs." />
       <div className="card overflow-x-auto"><h2 className="mb-2">Livreurs</h2><table className="table"><thead><tr><th>Nom</th><th>Téléphone</th><th>Disponibilité</th><th>Coffre</th></tr></thead>
         <tbody>{couriers.data?.map((c) => <tr key={c.user.id}><td>{c.user.fullName}</td><td>{c.user.phone}</td><td><Badge tone={c.available ? 'green' : 'gray'}>{c.available ? 'Disponible' : 'Indisponible'}</Badge></td><td>{c.boxName ?? 'Aucun'}</td></tr>)}</tbody></table></div>
       <div className="card overflow-x-auto"><h2 className="mb-2">Livraisons</h2>
@@ -207,7 +218,7 @@ export function AdminBoxesPage() {
 
   return (
     <div className="space-y-5">
-      <PageTitle title="Coffres et compartiments" subtitle="État réel connu du serveur, matériel simulé et injection de pannes pour les tests." />
+      <PageTitle icon={<Box className="h-6 w-6" />} title="Coffres et compartiments" subtitle="État réel connu du serveur, matériel simulé et injection de pannes pour les tests." />
       {boxes.isLoading && <Spinner />}
       {boxes.isError && <ErrorBox error={boxes.error} retry={() => boxes.refetch()} />}
       {boxes.data?.length === 0 && <Empty title="Aucun coffre" hint="Créez un coffre avec le formulaire ci-dessous." />}
@@ -274,7 +285,7 @@ export function AdminEventsPage() {
   const current = tab === 'openings' ? openings : tab === 'sensors' ? sensors : security;
   return (
     <div>
-      <PageTitle title="Événements électroniques et incidents" subtitle="Chaque ouverture, fermeture, tentative et anomalie est enregistrée." />
+      <PageTitle icon={<Activity className="h-6 w-6" />} title="Événements électroniques et incidents" subtitle="Chaque ouverture, fermeture, tentative et anomalie est enregistrée." />
       <div className="mb-3 flex flex-wrap gap-2">{tabs.map((t) => <button key={t.k} className={tab === t.k ? 'btn-dark btn-sm' : 'btn-ghost btn-sm'} onClick={() => setTab(t.k)}>{t.l}</button>)}</div>
       {current.isLoading && <Spinner />}
       {current.isError && <ErrorBox error={current.error} retry={() => current.refetch()} />}
@@ -300,7 +311,7 @@ export function AdminComplaintsPage() {
   const label = { OPEN: 'Ouverte', IN_PROGRESS: 'En cours', RESOLVED: 'Résolue' };
   return (
     <div>
-      <PageTitle title="Réclamations" />
+      <PageTitle icon={<MessageSquareWarning className="h-6 w-6" />} title="Réclamations" subtitle="Problèmes signalés par les clients." />
       {list.data?.length === 0 && <Empty title="Aucune réclamation" />}
       <div className="space-y-3">
         {list.data?.map((c) => (
@@ -336,7 +347,7 @@ export function SuperAdminPage() {
   const settingLabel: Record<string, string> = { deliveryFee: 'Frais de livraison (FCFA)', commissionPercent: 'Commission (%)', courierSharePercent: 'Part du livreur sur les frais (%)', codeValidityMinutes: 'Validité du code (min)', codeMaxAttempts: 'Codes incorrects avant blocage', codeLockMinutes: 'Blocage du clavier (min)', loadingAuthorizationMinutes: 'Autorisation de chargement (min)', simulatorEnabled: 'Coffre simulé', paymentsSandboxEnabled: 'Paiements de test' };
   return (
     <div className="space-y-4">
-      <PageTitle title="Superadministration" />
+      <PageTitle icon={<ShieldCheck className="h-6 w-6" />} title="Superadministration" subtitle="Administrateurs, paramètres généraux et journal d'audit." />
       <div className="grid gap-4 lg:grid-cols-2">
         <form className="card space-y-3" onSubmit={form.handleSubmit((v) => create.mutate(v))} noValidate>
           <h2>Créer un administrateur</h2>

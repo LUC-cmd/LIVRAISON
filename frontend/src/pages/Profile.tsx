@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { MapPin, Trash2 } from 'lucide-react';
+import { MapPin, Trash2, UserRound } from 'lucide-react';
 import { del, errorMessage, get, post, put } from '../api/client';
 import { roleLabel } from '../api/labels';
 import type { Address, User } from '../api/types';
@@ -80,7 +80,7 @@ export function ProfilePage() {
   if (!user) return null;
   return (
     <div className="space-y-4">
-      <PageTitle title="Mon profil" subtitle={`${user.email} · ${user.roles.map((r) => roleLabel[r]).join(', ')}`} />
+      <PageTitle icon={<UserRound className="h-6 w-6" />} title="Mon profil" subtitle={`${user.email} · ${user.roles.map((r) => roleLabel[r]).join(', ')}`} />
       <div className="grid gap-4 md:grid-cols-2">
         <form className="card space-y-3" onSubmit={profile.handleSubmit((v) => save.mutate(v))} noValidate>
           <h2>Informations</h2>

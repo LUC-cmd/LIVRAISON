@@ -4,7 +4,8 @@ import { useQuery } from '@tanstack/react-query';
 import { Clock, Lock, MapPin, Search, ShieldCheck } from 'lucide-react';
 import { get } from '../../api/client';
 import type { RestaurantCard } from '../../api/types';
-import { Badge, Empty, ErrorBox, Spinner } from '../../components/ui';
+import { DishArt } from '../../components/DishArt';
+import { Badge, Empty, ErrorBox, Section, Spinner } from '../../components/ui';
 
 export function HomePage() {
   const [q, setQ] = useState('');
@@ -18,7 +19,10 @@ export function HomePage() {
 
   return (
     <div className="space-y-6">
-      <section className="overflow-hidden rounded-3xl bg-ink-900 px-6 py-8 text-white sm:px-10 sm:py-12">
+      <section className="relative overflow-hidden rounded-3xl bg-ink-900 px-6 py-8 text-white shadow-soft sm:px-10 sm:py-12">
+        <div className="pointer-events-none absolute -right-16 -top-20 h-72 w-72 rounded-full bg-brand-500/35 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-24 right-40 h-56 w-56 rounded-full bg-leaf-500/25 blur-3xl" />
+        <div className="relative">
         <p className="text-xs font-semibold uppercase tracking-widest text-brand-400">Livraison sécurisée à Lomé</p>
         <h1 className="mt-2 max-w-xl text-3xl font-black leading-tight sm:text-4xl">Votre repas voyage sous clé. Vous seul l'ouvrez.</h1>
         <p className="mt-3 max-w-xl text-sm text-ink-300">Chaque commande est verrouillée dans son propre compartiment. À l'arrivée, votre code ouvre uniquement le vôtre.</p>
@@ -27,9 +31,23 @@ export function HomePage() {
           <span className="inline-flex items-center gap-1.5"><ShieldCheck className="h-4 w-4 text-brand-400" /> Code à usage unique</span>
           <span className="inline-flex items-center gap-1.5"><MapPin className="h-4 w-4 text-brand-400" /> Suivi du livreur sur la carte</span>
         </div>
+        <div className="mt-6 flex flex-wrap gap-2">
+          <a href="#restaurants" className="btn-primary">Commander maintenant</a>
+          <Link to="/simulation" className="btn border border-white/20 bg-white/10 text-white hover:bg-white/20">Voir la simulation 3D du coffre</Link>
+        </div>
+        </div>
       </section>
 
-      <section className="space-y-3">
+      <div className="grid gap-3 sm:grid-cols-3">
+        {[['1', 'Commandez', 'Choisissez vos plats dans un ou plusieurs restaurants.'], ['2', 'Suivez', 'Le repas est verrouillé dans son compartiment ; suivez le livreur sur la carte.'], ['3', 'Ouvrez', 'Tapez votre code sur le coffre : seul votre compartiment s’ouvre.']].map(([n, t, d]) => (
+          <div key={n} className="card flex items-start gap-3">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-500 text-lg font-black text-white">{n}</span>
+            <div><p className="font-bold">{t}</p><p className="text-sm text-ink-500">{d}</p></div>
+          </div>
+        ))}
+      </div>
+
+      <div id="restaurants" className="scroll-mt-28"><Section title="Restaurants">
         <div className="flex flex-wrap items-center gap-2">
           <div className="relative min-w-[220px] flex-1">
             <Search className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-ink-300" />
@@ -48,8 +66,9 @@ export function HomePage() {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {shown.map((r) => (
             <Link key={r.id} to={`/restaurants/${r.id}`} className="card rise group block overflow-hidden !p-0 transition hover:-translate-y-0.5">
-              <div className="flex h-28 items-center justify-center bg-gradient-to-br from-brand-100 to-brand-50">
-                {r.logoUrl ? <img src={r.logoUrl} alt="" className="h-full w-full object-cover" /> : <span className="text-4xl font-black text-brand-500">{r.name.charAt(0)}</span>}
+              <div className="relative h-32 overflow-hidden">
+                {r.logoUrl ? <img src={r.logoUrl} alt="" className="h-full w-full object-cover" /> : <DishArt name={r.cuisine || r.name} className="h-full w-full transition duration-300 group-hover:scale-105" />}
+                <span className="absolute bottom-2 left-3 flex h-10 w-10 items-center justify-center rounded-xl bg-white text-lg font-black text-brand-600 shadow-soft">{r.name.charAt(0)}</span>
               </div>
               <div className="space-y-1.5 p-4">
                 <div className="flex items-start justify-between gap-2">
@@ -62,7 +81,7 @@ export function HomePage() {
             </Link>
           ))}
         </div>
-      </section>
+      </Section></div>
     </div>
   );
 }

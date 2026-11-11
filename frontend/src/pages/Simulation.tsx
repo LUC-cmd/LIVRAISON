@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import { useQuery } from '@tanstack/react-query';
-import { Bike, Check, ChefHat, KeyRound, Play, Smartphone } from 'lucide-react';
+import { Bike, Box, Check, ChefHat, KeyRound, Play, Smartphone } from 'lucide-react';
 import { errorMessage, get } from '../api/client';
 import { compartmentStateLabel, deliveryStatusLabel, fcfa, orderStatusLabel } from '../api/labels';
 import type { Address, AppConfig, AuthResponse, BoxView, CodeView, GroupView, Hardware, Mission, OrderView, RestaurantDetail, RestaurantProfile } from '../api/types';
@@ -196,7 +196,7 @@ export function SimulationPage() {
 
   return (
     <div className="space-y-4">
-      <PageTitle title="Simulation 3D du coffre" subtitle="Prototype virtuel : chaque étape appelle le vrai serveur avec les comptes de démonstration. Rien n'est joué « pour de faux » à l'écran." />
+      <PageTitle icon={<Box className="h-6 w-6" />} title="Simulation 3D du coffre" subtitle="Prototype virtuel : chaque étape appelle le vrai serveur avec les comptes de démonstration. Rien n'est joué « pour de faux » à l'écran." />
       <div className="grid gap-4 lg:grid-cols-[1fr_340px]">
         <div className="space-y-3">
           <div className="rounded-3xl bg-ink-900 p-4 shadow-soft">

@@ -3,11 +3,12 @@ import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Bell, LogOut, Menu, ShoppingBag, User as UserIcon, X } from 'lucide-react';
 import { get, post } from '../api/client';
-import { dateTime } from '../api/labels';
+import { dateTime, roleLabel } from '../api/labels';
 import type { Notification } from '../api/types';
 import { useRealtime } from '../api/realtime';
 import { cartCount, useCart } from '../stores/cart';
 import { hasRole, homeFor, useSession } from '../stores/session';
+import { Logo } from './Logo';
 import { Toasts } from './ui';
 
 interface NavItem { to: string; label: string; end?: boolean }
@@ -87,20 +88,15 @@ export function Layout() {
     queryClient.clear();
     navigate('/');
   };
-  const linkClass = ({ isActive }: { isActive: boolean }) => `rounded-lg px-3 py-1.5 text-sm font-medium ${isActive ? 'bg-ink-900 text-white' : 'text-ink-700 hover:bg-ink-100'}`;
+  const linkClass = ({ isActive }: { isActive: boolean }) => `whitespace-nowrap rounded-full px-3.5 py-1.5 text-sm font-semibold transition ${isActive ? 'bg-brand-500 text-white shadow-soft' : 'text-ink-700 hover:bg-ink-100'}`;
 
   return (
     <div className="min-h-screen">
       <header className="sticky top-0 z-[1200] border-b border-ink-100 bg-white/90 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-2.5">
           <button className="rounded-lg p-2 hover:bg-ink-50 lg:hidden" onClick={() => setMenu((m) => !m)} aria-label="Menu">{menu ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}</button>
-          <Link to={homeFor(user)} className="flex items-center gap-2 font-black tracking-tight">
-            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-brand-500 text-white">S</span>
-            <span>SmartFood<span className="text-brand-500">.</span></span>
-          </Link>
-          <nav className="ml-4 hidden flex-1 flex-wrap items-center gap-1 lg:flex">
-            {nav.map((item) => <NavLink key={item.to} to={item.to} end={item.end} className={linkClass}>{item.label}</NavLink>)}
-          </nav>
+          <Link to={homeFor(user)} aria-label="SmartFood Delivery, accueil"><Logo /></Link>
+          {user && <span className="ml-2 hidden rounded-full bg-ink-100 px-2.5 py-1 text-[11px] font-semibold text-ink-700 sm:inline">{roleLabel[user.roles[0]]} · {user.fullName}</span>}
           <div className="ml-auto flex items-center gap-1">
             {showCart && (
               <Link to="/panier" className="relative rounded-full p-2 hover:bg-ink-50" aria-label="Panier">
@@ -122,13 +118,23 @@ export function Layout() {
             )}
           </div>
         </div>
+        <nav className="mx-auto hidden max-w-6xl items-center gap-1 overflow-x-auto px-4 pb-2 lg:flex">
+          {nav.map((item) => <NavLink key={item.to} to={item.to} end={item.end} className={linkClass}>{item.label}</NavLink>)}
+        </nav>
         {menu && (
           <nav className="flex flex-col gap-1 border-t border-ink-100 px-4 py-2 lg:hidden">
             {nav.map((item) => <NavLink key={item.to} to={item.to} end={item.end} className={linkClass} onClick={() => setMenu(false)}>{item.label}</NavLink>)}
           </nav>
         )}
       </header>
-      <main className="mx-auto max-w-6xl px-4 py-6"><Outlet /></main>
+      <main className="mx-auto min-h-[70vh] max-w-6xl px-4 py-6"><Outlet /></main>
+      <footer className="mt-10 bg-ink-900 text-ink-300">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-6">
+          <Logo light />
+          <p className="text-xs">Livraison de repas sécurisée par coffres à compartiments individuels · Lomé, Togo</p>
+          <p className="text-xs">Prototype — version 1 (coffre simulé)</p>
+        </div>
+      </footer>
       <Toasts />
     </div>
   );
