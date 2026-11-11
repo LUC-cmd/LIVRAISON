@@ -1,16 +1,12 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { BatteryLow, BatteryMedium, Delete, DoorClosed, DoorOpen, Lock, LockOpen, Thermometer, UtensilsCrossed, Wifi, WifiOff, Wrench } from 'lucide-react';
+import { BatteryLow, BatteryMedium, Thermometer, Wifi, WifiOff } from 'lucide-react';
 import { errorMessage, get, post, put } from '../api/client';
-import { compartmentStateLabel, faultLabel, sizeLabel } from '../api/labels';
-import type { BoxView, CompartmentState, CompartmentView, Hardware, HwFault } from '../api/types';
+import { faultLabel } from '../api/labels';
+import type { BoxView, CompartmentView, Hardware, HwFault } from '../api/types';
+import { Box3D } from './Box3D';
 import { toast } from '../stores/toast';
-import { Badge, ErrorBox, Spinner, type Tone } from './ui';
-
-const stateTone: Record<CompartmentState, Tone> = {
-  AVAILABLE: 'green', RESERVED: 'blue', LOADING: 'orange', OCCUPIED: 'orange', LOCKED: 'dark', WITHDRAWING: 'orange', OPEN: 'orange', FAULT: 'red',
-};
-const sizeSpan = { SMALL: 'min-h-[92px]', MEDIUM: 'min-h-[112px]', LARGE: 'min-h-[132px]' };
+import { ErrorBox, Spinner } from './ui';
 
 interface Props {
   boxId: number;
@@ -58,6 +54,7 @@ export function BoxSimulator({ boxId, keypad = false, admin = false, readOnly = 
   const keypadLocked = !!b.keypadLockedUntil && new Date(b.keypadLockedUntil) > new Date();
   const picked: CompartmentView | undefined = b.compartments.find((c) => c.number === selected);
 
+  const canType = keypad && !readOnly && simulated;
   const press = (digit: string) => setCode((c) => (c.length < 6 ? c + digit : c));
   const submit = () => {
     if (code.length !== 6) { toast.error('Le code contient six chiffres.'); return; }
@@ -85,57 +82,22 @@ export function BoxSimulator({ boxId, keypad = false, admin = false, readOnly = 
         )}
       </div>
 
-      <div className="grid gap-4 md:grid-cols-[1fr_auto]">
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-          {b.compartments.map((c) => {
-            const h = hwOf(c.number);
-            const open = h ? h.doorOpen : c.doorOpen;
-            return (
-              <button
-                key={c.id}
-                onClick={() => setSelected(c.number === selected ? null : c.number)}
-                className={`relative flex flex-col justify-between rounded-2xl border-2 p-3 text-left transition ${sizeSpan[c.size]} ${open ? 'border-brand-400 bg-brand-500/15' : 'border-white/10 bg-white/5'} ${selected === c.number ? 'ring-2 ring-white' : ''} ${c.mine ? 'outline outline-2 outline-offset-2 outline-leaf-500' : ''}`}
-                aria-label={`Compartiment ${c.number}, ${compartmentStateLabel[c.state]}`}
-              >
-                <div className="flex items-start justify-between">
-                  <span className="text-2xl font-black leading-none">{c.number}</span>
-                  <span className="text-[10px] uppercase text-ink-300">{sizeLabel[c.size]}</span>
-                </div>
-                <div className="flex items-center gap-1.5 text-ink-300">
-                  {open ? <DoorOpen className="h-4 w-4 text-brand-400" /> : <DoorClosed className="h-4 w-4" />}
-                  {(h ? h.latchEngaged : c.locked) ? <Lock className="h-4 w-4" /> : <LockOpen className="h-4 w-4 text-brand-400" />}
-                  {h?.mealPresent && <UtensilsCrossed className="h-4 w-4 text-leaf-100" />}
-                  {h && h.fault !== 'NONE' && <Wrench className="h-4 w-4 text-red-300" />}
-                </div>
-                <div className="flex flex-wrap items-center gap-1">
-                  <Badge tone={stateTone[c.state]}>{compartmentStateLabel[c.state]}</Badge>
-                  {c.orderId && <span className="text-[10px] text-ink-300">Cmd n°{c.orderId}</span>}
-                  {c.mine && <span className="text-[10px] font-semibold text-leaf-100">le vôtre</span>}
-                </div>
-              </button>
-            );
-          })}
-        </div>
-
-        <div className="w-full md:w-56">
-          <div className="rounded-xl bg-emerald-950 px-3 py-2 font-mono text-emerald-300" aria-live="polite">
-            <p className="text-[10px] uppercase text-emerald-600">Écran</p>
-            <p className="min-h-[20px] text-sm">{(hardware?.displayText ?? device?.displayText) || (keypadLocked ? 'CLAVIER BLOQUE' : 'SAISISSEZ VOTRE CODE')}</p>
-            <p className="mt-1 text-xl tracking-[.4em]">{code.padEnd(6, '·').replace(/\d/g, '•')}</p>
-          </div>
-          {keypad && !readOnly && simulated && (
-            <div className="mt-2 grid grid-cols-3 gap-1.5">
-              {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map((d) => (
-                <button key={d} className="rounded-lg bg-white/10 py-2.5 text-lg font-bold hover:bg-white/20" onClick={() => press(d)}>{d}</button>
-              ))}
-              <button className="flex items-center justify-center rounded-lg bg-white/10 py-2.5 hover:bg-white/20" onClick={() => setCode((c) => c.slice(0, -1))} aria-label="Effacer"><Delete className="h-5 w-5" /></button>
-              <button className="rounded-lg bg-white/10 py-2.5 text-lg font-bold hover:bg-white/20" onClick={() => press('0')}>0</button>
-              <button className="rounded-lg bg-brand-500 py-2.5 text-sm font-bold hover:bg-brand-600 disabled:opacity-50" disabled={action.isPending} onClick={submit}>OK</button>
-            </div>
-          )}
-          {readOnly && <p className="mt-2 text-xs text-ink-300">Vous transportez ce coffre. Seuls les clients ouvrent leur compartiment, avec leur code.</p>}
-        </div>
-      </div>
+      <Box3D
+        name={b.name}
+        online={device?.online ?? false}
+        selected={selected}
+        onSelect={(n) => setSelected(n === selected ? null : n)}
+        display={(hardware?.displayText ?? device?.displayText) || (keypadLocked ? 'CLAVIER BLOQUE' : 'SAISISSEZ VOTRE CODE')}
+        code={code}
+        onDigit={canType ? press : undefined}
+        onErase={canType ? () => setCode((c) => c.slice(0, -1)) : undefined}
+        onSubmit={canType && !action.isPending ? submit : undefined}
+        doors={b.compartments.map((c) => {
+          const h = hwOf(c.number);
+          return { number: c.number, size: c.size, state: c.state, doorOpen: h ? h.doorOpen : c.doorOpen, locked: h ? h.latchEngaged : c.locked, mealPresent: h?.mealPresent ?? false, mine: c.mine, orderId: c.orderId, fault: !!h && h.fault !== 'NONE' };
+        })}
+      />
+      {readOnly && <p className="mt-2 text-xs text-ink-300">Vous transportez ce coffre. Seuls les clients ouvrent leur compartiment, avec leur code.</p>}
 
       {picked && simulated && !readOnly && (
         <div className="rise mt-3 rounded-2xl bg-white/5 p-3">

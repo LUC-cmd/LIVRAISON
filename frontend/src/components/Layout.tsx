@@ -12,7 +12,13 @@ import { Toasts } from './ui';
 
 interface NavItem { to: string; label: string; end?: boolean }
 
+const simulation: NavItem = { to: '/simulation', label: 'Simulation 3D' };
+
 function navFor(user: ReturnType<typeof useSession.getState>['user']): NavItem[] {
+  return [...roleNav(user), simulation];
+}
+
+function roleNav(user: ReturnType<typeof useSession.getState>['user']): NavItem[] {
   if (hasRole(user, 'ADMIN', 'SUPERADMIN')) {
     const items: NavItem[] = [
       { to: '/admin', label: 'Tableau de bord', end: true }, { to: '/admin/commandes', label: 'Commandes' }, { to: '/admin/coffres', label: 'Coffres' },
