@@ -40,6 +40,7 @@ public class IotDevice {
 
     private int batteryPct = 100;
 
+    @Column(name = "temperature_c")
     private double temperatureC = 25;
 
     private String displayText = "";

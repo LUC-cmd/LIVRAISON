@@ -29,6 +29,7 @@ public class DeviceHeartbeat {
 
     private int batteryPct;
 
+    @Column(name = "temperature_c")
     private double temperatureC;
 
     private Instant createdAt = Instant.now();

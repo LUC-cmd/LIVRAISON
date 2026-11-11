@@ -33,6 +33,7 @@ public class DeliveryLocation {
 
     private double longitude;
 
+    @Column(name = "accuracy_m")
     private Double accuracyM;
 
     private boolean simulated;
