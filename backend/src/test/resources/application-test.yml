@@ -1,0 +1,17 @@
+# Les tests s'executent sur un vrai PostgreSQL (base smartfood_test), videe puis migree au demarrage.
+spring:
+  datasource:
+    url: ${TEST_DB_URL:jdbc:postgresql://localhost:5432/smartfood_test}
+    username: ${TEST_DB_USER:smartfood}
+    password: ${TEST_DB_PASSWORD:smartfood}
+  flyway:
+    clean-disabled: false
+
+smartfood:
+  simulator:
+    enabled: true
+  payments:
+    sandbox-enabled: true
+  demo-data: true
+  storage:
+    dir: ./target/test-storage

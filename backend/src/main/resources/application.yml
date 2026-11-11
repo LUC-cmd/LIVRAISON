@@ -1,0 +1,61 @@
+server:
+  port: ${PORT:8080}
+
+spring:
+  application:
+    name: smartfood-backend
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/smartfood}
+    username: ${DB_USER:smartfood}
+    password: ${DB_PASSWORD:smartfood}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate.jdbc.time_zone: UTC
+  flyway:
+    enabled: true
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 6MB
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+
+smartfood:
+  jwt:
+    # 32 caracteres minimum. A remplacer en production (variable JWT_SECRET).
+    secret: ${JWT_SECRET:dev-only-secret-change-me-0123456789-abcdefghijklmnopqrstuvwxyz}
+    access-minutes: ${JWT_ACCESS_MINUTES:30}
+    refresh-days: ${JWT_REFRESH_DAYS:30}
+  codes:
+    # Secret HMAC des codes de retrait et cle AES-256 (base64, 32 octets) pour le reaffichage au client.
+    hmac-secret: ${CODE_HMAC_SECRET:dev-only-code-hmac-secret-change-me}
+    aes-key: ${CODE_AES_KEY:ZGV2LW9ubHktYWVzLWtleS0zMi1ieXRlcy1sb25nISE=}
+    validity-minutes: ${CODE_VALIDITY_MINUTES:120}
+    max-attempts: 5
+    lock-minutes: 10
+  loading-authorization-minutes: 10
+  pricing:
+    delivery-fee: ${DELIVERY_FEE:500}
+    commission-percent: ${COMMISSION_PERCENT:15}
+    courier-share-percent: ${COURIER_SHARE_PERCENT:80}
+  simulator:
+    # Coffre virtuel. A desactiver quand un vrai coffre est branche.
+    enabled: ${SIMULATOR_ENABLED:true}
+  payments:
+    # Fournisseur de test pour Mixx, Flooz et carte. Jamais en production.
+    sandbox-enabled: ${PAYMENTS_SANDBOX:true}
+  demo-data: ${DEMO_DATA:true}
+  storage:
+    dir: ${STORAGE_DIR:./storage}
+  cors:
+    allowed-origins: ${CORS_ORIGINS:http://localhost:5173}
+  bootstrap:
+    superadmin-email: ${SUPERADMIN_EMAIL:superadmin@smartfood.tg}
+    superadmin-password: ${SUPERADMIN_PASSWORD:ChangeMe!2026}
+  mail:
+    from: ${MAIL_FROM:no-reply@smartfood.tg}

@@ -1,0 +1,5 @@
+package tg.smartfood.order;
+
+public enum OrderStatus {
+    AWAITING_PAYMENT, PENDING, ACCEPTED, READY, RESERVED, LOADED, IN_TRANSIT, ARRIVED, COLLECTED, REJECTED, CANCELLED
+}

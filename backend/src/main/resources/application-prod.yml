@@ -1,0 +1,7 @@
+# Profil de production : aucune simulation, aucun paiement de test, aucune donnee de demonstration.
+smartfood:
+  simulator:
+    enabled: false
+  payments:
+    sandbox-enabled: false
+  demo-data: false

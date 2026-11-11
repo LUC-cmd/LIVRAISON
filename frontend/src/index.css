@@ -1,0 +1,30 @@
+@import 'leaflet/dist/leaflet.css';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body { @apply bg-ink-50 text-ink-900 antialiased; }
+  h1 { @apply text-2xl font-bold tracking-tight; }
+  h2 { @apply text-lg font-semibold; }
+}
+
+@layer components {
+  .btn { @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition active:scale-[.98] disabled:cursor-not-allowed disabled:opacity-50; }
+  .btn-primary { @apply btn bg-brand-500 text-white shadow-soft hover:bg-brand-600; }
+  .btn-dark { @apply btn bg-ink-900 text-white hover:bg-ink-700; }
+  .btn-ghost { @apply btn border border-ink-100 bg-white text-ink-700 hover:bg-ink-50; }
+  .btn-danger { @apply btn border border-red-200 bg-red-50 text-red-700 hover:bg-red-100; }
+  .btn-sm { @apply rounded-lg px-3 py-1.5 text-xs; }
+  .card { @apply rounded-2xl border border-ink-100 bg-white p-4 shadow-soft; }
+  .input { @apply w-full rounded-xl border border-ink-100 bg-white px-3 py-2.5 text-sm outline-none transition placeholder:text-ink-300 focus:border-brand-400 focus:ring-2 focus:ring-brand-100; }
+  .label { @apply mb-1 block text-xs font-semibold uppercase tracking-wide text-ink-500; }
+  .table { @apply w-full text-left text-sm; }
+  .table th { @apply border-b border-ink-100 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-ink-500; }
+  .table td { @apply border-b border-ink-100 px-3 py-2 align-top; }
+}
+
+.leaflet-container { font: inherit; border-radius: 1rem; z-index: 0; }
+@keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.rise { animation: rise .25s ease-out; }
+@media (prefers-reduced-motion: reduce) { .rise { animation: none; } }
