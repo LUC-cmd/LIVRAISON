@@ -45,12 +45,12 @@ function Notifications() {
   const unread = query.data?.unread ?? 0;
   return (
     <div className="relative">
-      <button className="relative rounded-full p-2 hover:bg-ink-50" onClick={() => setOpen((o) => !o)} aria-label={`Notifications (${unread} non lues)`}>
+      <button className="relative rounded-full p-2 hover:bg-white/10" onClick={() => setOpen((o) => !o)} aria-label={`Notifications (${unread} non lues)`}>
         <Bell className="h-5 w-5" />
         {unread > 0 && <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-brand-500 px-1 text-[10px] font-bold text-white">{unread > 99 ? '99+' : unread}</span>}
       </button>
       {open && (
-        <div className="rise absolute right-0 z-[1500] mt-2 w-[min(92vw,380px)] rounded-2xl border border-ink-100 bg-white shadow-soft">
+        <div className="rise absolute right-0 z-[1500] mt-2 w-[min(92vw,380px)] rounded-2xl border border-ink-100 bg-white text-ink-900 shadow-soft">
           <div className="flex items-center justify-between border-b border-ink-100 px-4 py-2">
             <p className="font-semibold">Notifications</p>
             <button className="text-xs font-semibold text-brand-600 disabled:opacity-40" disabled={unread === 0 || readAll.isPending} onClick={() => readAll.mutate()}>Tout marquer comme lu</button>
@@ -88,31 +88,31 @@ export function Layout() {
     queryClient.clear();
     navigate('/');
   };
-  const linkClass = ({ isActive }: { isActive: boolean }) => `whitespace-nowrap rounded-full px-3.5 py-1.5 text-sm font-semibold transition ${isActive ? 'bg-brand-500 text-white shadow-soft' : 'text-ink-700 hover:bg-ink-100'}`;
+  const linkClass = ({ isActive }: { isActive: boolean }) => `whitespace-nowrap rounded-full px-3.5 py-1.5 text-sm font-semibold transition ${isActive ? 'bg-brand-500 text-white shadow-soft' : 'text-ink-100 hover:bg-white/10'}`;
 
   return (
     <div className="min-h-screen">
-      <header className="sticky top-0 z-[1200] border-b border-ink-100 bg-white/90 backdrop-blur">
+      <header className="sticky top-0 z-[1200] bg-ink-900 text-white shadow-soft">
         <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-2.5">
-          <button className="rounded-lg p-2 hover:bg-ink-50 lg:hidden" onClick={() => setMenu((m) => !m)} aria-label="Menu">{menu ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}</button>
-          <Link to={homeFor(user)} aria-label="SmartFood Delivery, accueil"><Logo /></Link>
-          {user && <span className="ml-2 hidden rounded-full bg-ink-100 px-2.5 py-1 text-[11px] font-semibold text-ink-700 sm:inline">{roleLabel[user.roles[0]]} · {user.fullName}</span>}
+          <button className="rounded-lg p-2 hover:bg-white/10 lg:hidden" onClick={() => setMenu((m) => !m)} aria-label="Menu">{menu ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}</button>
+          <Link to={homeFor(user)} aria-label="SmartFood Delivery, accueil"><Logo light /></Link>
+          {user && <span className="ml-2 hidden rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-semibold text-ink-100 sm:inline">{roleLabel[user.roles[0]]} · {user.fullName}</span>}
           <div className="ml-auto flex items-center gap-1">
             {showCart && (
-              <Link to="/panier" className="relative rounded-full p-2 hover:bg-ink-50" aria-label="Panier">
+              <Link to="/panier" className="relative rounded-full p-2 hover:bg-white/10" aria-label="Panier">
                 <ShoppingBag className="h-5 w-5" />
-                {cartCount(lines) > 0 && <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-ink-900 px-1 text-[10px] font-bold text-white">{cartCount(lines)}</span>}
+                {cartCount(lines) > 0 && <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-brand-500 px-1 text-[10px] font-bold text-white">{cartCount(lines)}</span>}
               </Link>
             )}
             {user ? (
               <>
                 <Notifications />
-                <Link to="/profil" className="rounded-full p-2 hover:bg-ink-50" aria-label="Mon profil"><UserIcon className="h-5 w-5" /></Link>
-                <button className="rounded-full p-2 hover:bg-ink-50" onClick={logout} aria-label="Se déconnecter"><LogOut className="h-5 w-5" /></button>
+                <Link to="/profil" className="rounded-full p-2 hover:bg-white/10" aria-label="Mon profil"><UserIcon className="h-5 w-5" /></Link>
+                <button className="rounded-full p-2 hover:bg-white/10" onClick={logout} aria-label="Se déconnecter"><LogOut className="h-5 w-5" /></button>
               </>
             ) : (
               <>
-                <Link to="/connexion" className="btn-ghost btn-sm">Connexion</Link>
+                <Link to="/connexion" className="btn btn-sm border border-white/25 bg-white/10 text-white hover:bg-white/20">Connexion</Link>
                 <Link to="/inscription" className="btn-primary btn-sm hidden whitespace-nowrap sm:inline-flex">Créer un compte</Link>
               </>
             )}
@@ -122,7 +122,7 @@ export function Layout() {
           {nav.map((item) => <NavLink key={item.to} to={item.to} end={item.end} className={linkClass}>{item.label}</NavLink>)}
         </nav>
         {menu && (
-          <nav className="flex flex-col gap-1 border-t border-ink-100 px-4 py-2 lg:hidden">
+          <nav className="flex flex-col gap-1 border-t border-white/10 px-4 py-2 lg:hidden">
             {nav.map((item) => <NavLink key={item.to} to={item.to} end={item.end} className={linkClass} onClick={() => setMenu(false)}>{item.label}</NavLink>)}
           </nav>
         )}
