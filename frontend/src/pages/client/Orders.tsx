@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -11,6 +11,7 @@ import type { AppConfig, CodeView, Complaint, GroupView, OrderStatus, OrderView,
 import { BoxSimulator } from '../../components/BoxSimulator';
 import { MapView, type MapPoint } from '../../components/MapView';
 import { Badge, Empty, ErrorBox, Field, PageTitle, Spinner, type Tone } from '../../components/ui';
+import { useCart } from '../../stores/cart';
 import { toast } from '../../stores/toast';
 
 const tone: Record<OrderStatus, Tone> = {
@@ -131,6 +132,8 @@ function TrackingMap({ group }: { group: GroupView }) {
 
 export function OrderDetailPage() {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const addLines = useCart((c) => c.addLines);
   const queryClient = useQueryClient();
   const group = useQuery({ queryKey: ['orders', 'group', id], queryFn: () => get<GroupView>(`/customer/orders/${id}`), refetchInterval: 15000 });
   const refresh = () => queryClient.invalidateQueries({ queryKey: ['orders'] });
@@ -147,6 +150,13 @@ export function OrderDetailPage() {
   if (group.isError || !group.data) return <ErrorBox error={group.error} retry={() => group.refetch()} />;
   const g = group.data;
   const paymentFailed = g.payment?.status === 'FAILED' && g.orders.some((o) => o.status === 'AWAITING_PAYMENT');
+  // Commande entierement annulee ou refusee : le client peut remettre les memes plats dans son panier.
+  const allClosed = g.orders.every((o) => o.status === 'CANCELLED' || o.status === 'REJECTED');
+  const reorder = () => {
+    addLines(g.orders.flatMap((o) => o.items.map((i) => ({ dishId: i.dishId, name: i.name, price: i.unitPrice, quantity: i.quantity, restaurantId: o.restaurantId, restaurantName: o.restaurantName }))));
+    toast.success('Les plats sont de nouveau dans votre panier.');
+    navigate('/panier');
+  };
   const chosenMethod = retryMethod ?? g.payment?.method ?? 'CASH_ON_DELIVERY';
   const boxIds = Array.from(new Set(g.orders.filter((o) => o.boxId && ['LOADED', 'IN_TRANSIT', 'ARRIVED'].includes(o.status)).map((o) => o.boxId as number)));
   const awaitingSandbox = g.payment?.status === 'PENDING' && g.payment.provider === 'sandbox';
@@ -163,6 +173,16 @@ export function OrderDetailPage() {
             <button className="btn-primary btn-sm" disabled={pay.isPending} onClick={() => pay.mutate(true)}>Simuler un paiement réussi</button>
             <button className="btn-danger btn-sm" disabled={pay.isPending} onClick={() => pay.mutate(false)}>Simuler un échec</button>
           </div>
+        </div>
+      )}
+
+      {allClosed && (
+        <div className="card flex flex-wrap items-center justify-between gap-3 border-brand-100 bg-brand-50">
+          <div>
+            <p className="font-semibold">{g.payment?.status === 'FAILED' ? "Le paiement n'a pas abouti et cette commande a été annulée." : 'Cette commande a été annulée.'}</p>
+            <p className="text-sm text-ink-700">Vous pouvez la repasser en un clic et choisir votre moyen de paiement.</p>
+          </div>
+          <button className="btn-primary" onClick={reorder}>Commander à nouveau</button>
         </div>
       )}
 

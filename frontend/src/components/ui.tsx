@@ -53,15 +53,16 @@ export function Field({ label, error, children }: { label: string; error?: strin
 /** En-tete de page : bandeau sombre, pastille d'icone, titre, sous-titre et actions. */
 export function PageTitle({ title, subtitle, action, icon }: { title: string; subtitle?: string; action?: ReactNode; icon?: ReactNode }) {
   return (
-    <div className="relative mb-5 overflow-hidden rounded-3xl bg-ink-900 px-5 py-5 text-white shadow-soft sm:px-7 sm:py-6">
-      <div className="pointer-events-none absolute -right-10 -top-16 h-48 w-48 rounded-full bg-brand-500/30 blur-2xl" />
-      <div className="pointer-events-none absolute -bottom-20 right-24 h-40 w-40 rounded-full bg-leaf-500/20 blur-2xl" />
+    <div className="relative mb-5 overflow-hidden rounded-3xl bg-gradient-to-r from-brand-600 via-brand-500 to-amber-400 px-5 py-5 text-white shadow-soft sm:px-7 sm:py-6">
+      <div className="pointer-events-none absolute -right-8 -top-14 h-44 w-44 rounded-full bg-white/20" />
+      <div className="pointer-events-none absolute -bottom-16 right-28 h-36 w-36 rounded-full bg-white/10" />
+      <div className="pointer-events-none absolute -bottom-10 -left-10 h-28 w-28 rounded-full bg-black/10" />
       <div className="relative flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          {icon && <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-brand-500 text-white shadow-soft">{icon}</span>}
+          {icon && <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white text-brand-600 shadow-soft">{icon}</span>}
           <div>
-            <h1 className="text-white">{title}</h1>
-            {subtitle && <p className="mt-1 max-w-2xl text-sm text-ink-300">{subtitle}</p>}
+            <h1 className="text-white drop-shadow-sm">{title}</h1>
+            {subtitle && <p className="mt-1 max-w-2xl text-sm font-medium text-white/90">{subtitle}</p>}
           </div>
         </div>
         {action && <div className="flex flex-wrap items-center gap-2">{action}</div>}
