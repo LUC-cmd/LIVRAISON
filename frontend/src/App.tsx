@@ -5,6 +5,7 @@ import { Layout } from './components/Layout';
 import { Empty } from './components/ui';
 import { LoginPage, RegisterPage } from './pages/Auth';
 import { ProfilePage } from './pages/Profile';
+import { CreditsPage } from './pages/Credits';
 import { SimulationPage } from './pages/Simulation';
 import { CartPage } from './pages/client/Cart';
 import { HomePage } from './pages/client/Home';
@@ -43,6 +44,7 @@ export default function App() {
         <Route path="/panier" element={<CartPage />} />
         <Route path="/connexion" element={<LoginPage />} />
         <Route path="/inscription" element={<RegisterPage />} />
+        <Route path="/credits" element={<CreditsPage />} />
         <Route path="/simulation" element={<SimulationPage />} />
         <Route path="/profil" element={<Guard><ProfilePage /></Guard>} />
 

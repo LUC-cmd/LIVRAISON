@@ -132,7 +132,7 @@ export function Layout() {
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-6">
           <Logo light />
           <p className="text-xs">Livraison de repas sécurisée par coffres à compartiments individuels · Lomé, Togo</p>
-          <p className="text-xs">Prototype — version 1 (coffre simulé)</p>
+          <p className="text-xs">Prototype — version 1 (coffre simulé) · <Link to="/credits" className="underline">Crédits photos</Link></p>
         </div>
       </footer>
       <Toasts />

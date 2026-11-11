@@ -49,8 +49,8 @@ export function RestaurantPage() {
     <div className="space-y-5 pb-24">
       <Link to="/" className="inline-flex items-center gap-1 text-sm font-semibold text-ink-500 hover:text-ink-900"><ArrowLeft className="h-4 w-4" /> Tous les restaurants</Link>
       <div className="relative overflow-hidden rounded-3xl bg-ink-900 text-white shadow-soft">
-        <div className="absolute inset-0 opacity-30"><DishArt name={r.cuisine || r.name} className="h-full w-full" /></div>
-        <div className="absolute inset-0 bg-gradient-to-r from-ink-900 via-ink-900/85 to-ink-900/40" />
+        <div className="absolute inset-0"><DishArt name={r.cuisine || r.name} className="h-full w-full" /></div>
+        <div className="absolute inset-0 bg-ink-900/75" />
         <div className="relative flex flex-wrap items-center gap-4 p-5 sm:p-7">
           <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-2xl bg-white text-3xl font-black text-brand-600 shadow-soft">
             {r.logoUrl ? <img src={r.logoUrl} alt="" className="h-full w-full object-cover" /> : r.name.charAt(0)}
