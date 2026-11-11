@@ -197,7 +197,7 @@ public class OrderService {
                 "Commande n°" + order.getId() + " de " + order.getSubtotal() + " FCFA a accepter.", "/restaurant/commandes");
     }
 
-    /** Apres un paiement en ligne : les sous-commandes en attente partent chez les restaurants, ou sont annulees si le paiement echoue. */
+    /** Apres un paiement en ligne reussi, les sous-commandes en attente partent chez les restaurants. Apres un echec, elles attendent une nouvelle tentative. */
     @EventListener
     @Transactional
     public void onPaymentCompleted(PaymentCompleted event) {
@@ -208,16 +208,36 @@ public class OrderService {
             if (event.success()) {
                 orderStatus.transition(order, OrderStatus.PENDING, order.getCustomerId(), "Paiement recu");
                 restaurants.findById(order.getRestaurantId()).ifPresent(r -> notifyNewOrder(r, order));
-            } else {
-                orderStatus.transition(order, OrderStatus.CANCELLED, order.getCustomerId(), "Paiement echoue");
             }
+            // En cas d'echec, la commande reste en attente de paiement : le client peut reessayer ou l'annuler.
         }
         groups.findById(event.groupId()).ifPresent(group -> notifications.notify(group.getCustomerId(),
                 event.success() ? "PAYMENT_SUCCEEDED" : "PAYMENT_FAILED",
                 event.success() ? "Paiement recu" : "Paiement echoue",
                 event.success() ? "Votre paiement de " + group.getTotal() + " FCFA est confirme."
-                        : "Votre paiement n'a pas abouti. La commande est annulee.",
+                        : "Votre paiement n'a pas abouti. Vous pouvez reessayer ou choisir un autre moyen de paiement.",
                 "/commandes/" + group.getId()));
+    }
+
+    /** Le client relance un paiement echoue, eventuellement avec un autre moyen de paiement. */
+    @Transactional
+    public GroupView retryPayment(Long groupId, AuthUser customer, PaymentMethod method) {
+        OrderGroup group = groups.findById(groupId).filter(g -> g.getCustomerId().equals(customer.id()))
+                .orElseThrow(() -> ApiException.notFound("Commande introuvable."));
+        List<FoodOrder> waiting = orders.findByGroupIdOrderByIdAsc(groupId).stream()
+                .filter(o -> o.getStatus() == OrderStatus.AWAITING_PAYMENT).toList();
+        if (waiting.isEmpty()) {
+            throw ApiException.conflict("NOTHING_TO_PAY", "Cette commande n'attend plus de paiement.");
+        }
+        payments.retry(groupId, method, customer.id());
+        if (method == PaymentMethod.CASH_ON_DELIVERY) {
+            // Paiement a la livraison : la commande part tout de suite chez les restaurants.
+            for (FoodOrder order : waiting) {
+                orderStatus.transition(order, OrderStatus.PENDING, customer.id(), "Paiement a la livraison choisi");
+                restaurants.findById(order.getRestaurantId()).ifPresent(r -> notifyNewOrder(r, order));
+            }
+        }
+        return queries.groupViews(List.of(group)).get(0);
     }
 
     /** Ecran de test : le client valide ou refuse lui-meme un paiement du prestataire de test. */

@@ -137,6 +137,25 @@ public class PaymentService {
         }
     }
 
+    /** Relance un paiement echoue, avec le meme moyen de paiement ou un autre. Le paiement repasse EN ATTENTE. */
+    @Transactional
+    public Payment retry(Long groupId, PaymentMethod method, Long actorId) {
+        Payment payment = require(groupId);
+        if (payment.getStatus() != PaymentStatus.FAILED) {
+            throw ApiException.conflict("PAYMENT_NOT_FAILED", "Seul un paiement echoue peut etre relance.");
+        }
+        PaymentProvider provider = providerFor(method);
+        payment.setMethod(method);
+        payment.setProvider(provider.name());
+        payment.setStatus(PaymentStatus.PENDING);
+        payment.setUpdatedAt(Instant.now());
+        payment.setProviderRef(provider.initiate(payment));
+        Payment saved = payments.save(payment);
+        transaction(saved, TxType.CHARGE, TxStatus.PENDING, saved.getAmount(), saved.getProviderRef(), "Nouvelle tentative de paiement");
+        audit.log(actorId, "PAYMENT_RETRY", "PAYMENT", saved.getId(), method.name());
+        return saved;
+    }
+
     /** Diminue le montant d'un paiement encore en attente quand une sous-commande est refusee ou annulee. */
     @Transactional
     public void reducePending(Long groupId, int reduction, Long actorId, String reason) {

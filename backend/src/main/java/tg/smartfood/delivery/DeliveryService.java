@@ -324,6 +324,7 @@ public class DeliveryService {
         List<Long> recipients = new ArrayList<>();
         recipients.add(delivery.getCourierId());
         groups.findById(delivery.getGroupId()).ifPresent(g -> recipients.add(g.getCustomerId()));
+        recipients.addAll(users.findAdminIds());
         realtime.pushAll(recipients, "delivery.updated", payload);
     }
 

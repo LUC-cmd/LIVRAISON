@@ -7,7 +7,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, Check, Eye, EyeOff, KeyRound, Phone } from 'lucide-react';
 import { errorMessage, get, post } from '../../api/client';
 import { dateTime, deliveryStatusLabel, fcfa, orderStatusLabel, paymentMethodLabel, paymentStatusLabel, timeOnly } from '../../api/labels';
-import type { CodeView, Complaint, GroupView, OrderStatus, OrderView, Tracking } from '../../api/types';
+import type { AppConfig, CodeView, Complaint, GroupView, OrderStatus, OrderView, PaymentMethod, Tracking } from '../../api/types';
 import { BoxSimulator } from '../../components/BoxSimulator';
 import { MapView, type MapPoint } from '../../components/MapView';
 import { Badge, Empty, ErrorBox, Field, PageTitle, Spinner, type Tone } from '../../components/ui';
@@ -136,9 +136,18 @@ export function OrderDetailPage() {
   const refresh = () => queryClient.invalidateQueries({ queryKey: ['orders'] });
   const pay = useMutation({ mutationFn: (success: boolean) => post(`/customer/orders/${id}/sandbox-payment`, { success }), onSuccess: refresh, onError: (e) => toast.error(errorMessage(e)) });
   const cancel = useMutation({ mutationFn: (orderId: number) => post(`/customer/order-items/${orderId}/cancel`), onSuccess: () => { toast.success('Commande annulée.'); refresh(); }, onError: (e) => toast.error(errorMessage(e)) });
+  const config = useQuery({ queryKey: ['config'], queryFn: () => get<AppConfig>('/config') });
+  const [retryMethod, setRetryMethod] = useState<PaymentMethod | null>(null);
+  const retry = useMutation({
+    mutationFn: (method: PaymentMethod) => post(`/customer/orders/${id}/retry-payment`, { paymentMethod: method }),
+    onSuccess: () => { toast.success('Nouvelle tentative de paiement lancée.'); refresh(); },
+    onError: (e) => toast.error(errorMessage(e)),
+  });
   if (group.isLoading) return <Spinner />;
   if (group.isError || !group.data) return <ErrorBox error={group.error} retry={() => group.refetch()} />;
   const g = group.data;
+  const paymentFailed = g.payment?.status === 'FAILED' && g.orders.some((o) => o.status === 'AWAITING_PAYMENT');
+  const chosenMethod = retryMethod ?? g.payment?.method ?? 'CASH_ON_DELIVERY';
   const boxIds = Array.from(new Set(g.orders.filter((o) => o.boxId && ['LOADED', 'IN_TRANSIT', 'ARRIVED'].includes(o.status)).map((o) => o.boxId as number)));
   const awaitingSandbox = g.payment?.status === 'PENDING' && g.payment.provider === 'sandbox';
   return (
@@ -153,6 +162,21 @@ export function OrderDetailPage() {
           <div className="flex gap-2">
             <button className="btn-primary btn-sm" disabled={pay.isPending} onClick={() => pay.mutate(true)}>Simuler un paiement réussi</button>
             <button className="btn-danger btn-sm" disabled={pay.isPending} onClick={() => pay.mutate(false)}>Simuler un échec</button>
+          </div>
+        </div>
+      )}
+
+      {paymentFailed && (
+        <div className="card space-y-3 border-red-200 bg-red-50">
+          <div>
+            <p className="font-semibold text-red-800">Le paiement de {fcfa(g.payment!.amount)} n'a pas abouti</p>
+            <p className="text-sm text-ink-700">Votre commande est conservée. Réessayez avec le même moyen de paiement ou choisissez-en un autre.</p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <select className="input w-auto" value={chosenMethod} onChange={(e) => setRetryMethod(e.target.value as PaymentMethod)} aria-label="Moyen de paiement">
+              {(config.data?.paymentMethods ?? [chosenMethod]).map((m) => <option key={m} value={m}>{paymentMethodLabel[m]}</option>)}
+            </select>
+            <button className="btn-primary" disabled={retry.isPending} onClick={() => retry.mutate(chosenMethod)}>Réessayer le paiement</button>
           </div>
         </div>
       )}

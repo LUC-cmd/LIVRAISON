@@ -25,30 +25,13 @@ export function useRealtime() {
       onConnect: () => {
         client.subscribe('/user/queue/events', (frame) => {
           const event = JSON.parse(frame.body) as ServerEvent;
-          switch (event.type) {
-            case 'notification': {
-              const n = event.payload as Notification;
-              toast.info(`${n.title} — ${n.body}`);
-              queryClient.invalidateQueries({ queryKey: ['notifications'] });
-              break;
-            }
-            case 'box.updated':
-              queryClient.invalidateQueries({ queryKey: ['boxes'] });
-              queryClient.invalidateQueries({ queryKey: ['hardware'] });
-              queryClient.invalidateQueries({ queryKey: ['orders'] });
-              queryClient.invalidateQueries({ queryKey: ['courier'] });
-              break;
-            case 'order.updated':
-              queryClient.invalidateQueries({ queryKey: ['orders'] });
-              queryClient.invalidateQueries({ queryKey: ['courier'] });
-              queryClient.invalidateQueries({ queryKey: ['admin'] });
-              break;
-            case 'delivery.updated':
-            case 'delivery.location':
-              queryClient.invalidateQueries({ queryKey: ['tracking'] });
-              queryClient.invalidateQueries({ queryKey: ['courier'] });
-              queryClient.invalidateQueries({ queryKey: ['orders'] });
-              break;
+          if (event.type === 'notification') {
+            const n = event.payload as Notification;
+            toast.info(`${n.title} — ${n.body}`);
+          }
+          // Tout evenement du serveur rafraichit les ecrans ouverts : commandes, coffres, missions, tableaux de bord.
+          for (const key of ['notifications', 'orders', 'boxes', 'hardware', 'courier', 'tracking', 'admin', 'restaurant', 'restaurants', 'complaints']) {
+            queryClient.invalidateQueries({ queryKey: [key] });
           }
         });
       },

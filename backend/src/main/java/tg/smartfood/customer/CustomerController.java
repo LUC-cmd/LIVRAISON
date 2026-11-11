@@ -36,6 +36,9 @@ public class CustomerController {
     public record SandboxRequest(boolean success) {
     }
 
+    public record RetryPaymentRequest(@jakarta.validation.constraints.NotNull(message = "Choisissez un moyen de paiement.") tg.smartfood.payment.PaymentMethod paymentMethod) {
+    }
+
     public record ComplaintRequest(Long orderId,
                                    @NotBlank(message = "L'objet est obligatoire.") @Size(max = 160) String subject,
                                    @NotBlank(message = "Decrivez le probleme.") @Size(max = 2000) String message) {
@@ -92,6 +95,11 @@ public class CustomerController {
     @PostMapping("/orders/{groupId}/sandbox-payment")
     public GroupView sandboxPayment(@AuthenticationPrincipal AuthUser user, @PathVariable Long groupId, @RequestBody SandboxRequest request) {
         return orderService.completeSandboxPayment(groupId, user, request.success());
+    }
+
+    @PostMapping("/orders/{groupId}/retry-payment")
+    public GroupView retryPayment(@AuthenticationPrincipal AuthUser user, @PathVariable Long groupId, @Valid @RequestBody RetryPaymentRequest request) {
+        return orderService.retryPayment(groupId, user, request.paymentMethod());
     }
 
     @PostMapping("/order-items/{orderId}/cancel")

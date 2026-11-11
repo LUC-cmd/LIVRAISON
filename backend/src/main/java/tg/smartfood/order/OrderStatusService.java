@@ -6,6 +6,7 @@ import tg.smartfood.common.ApiException;
 import tg.smartfood.delivery.DeliveryRepository;
 import tg.smartfood.realtime.RealtimeService;
 import tg.smartfood.restaurant.RestaurantRepository;
+import tg.smartfood.user.UserRepository;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -41,9 +42,11 @@ public class OrderStatusService {
     private final RestaurantRepository restaurants;
     private final DeliveryRepository deliveries;
     private final RealtimeService realtime;
+    private final UserRepository users;
 
     public OrderStatusService(FoodOrderRepository orders, OrderStatusHistoryRepository history, RestaurantRepository restaurants,
-                              DeliveryRepository deliveries, RealtimeService realtime) {
+                              DeliveryRepository deliveries, RealtimeService realtime, UserRepository users) {
+        this.users = users;
         this.orders = orders;
         this.history = history;
         this.restaurants = restaurants;
@@ -87,6 +90,7 @@ public class OrderStatusService {
         if (order.getDeliveryId() != null) {
             deliveries.findById(order.getDeliveryId()).ifPresent(d -> recipients.add(d.getCourierId()));
         }
+        recipients.addAll(users.findAdminIds());
         realtime.pushAll(recipients, "order.updated", payload);
     }
 }
